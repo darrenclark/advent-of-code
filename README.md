@@ -8,3 +8,4 @@ Languages used:
 
 1. OCaml
 1. Reason
+1. Awk
