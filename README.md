@@ -14,3 +14,42 @@ Languages used:
 1. Bash
 1. PL/pgSQL
 1. Lua
+
+Possible languages:
+
+- Native
+    - C
+    - C++
+    - Objective C
+    - Swift
+    - Rust
+    - Go
+    - D *
+    - Nim *
+    - Zig *
+- JVM
+    - Java
+    - Kotlin
+    - Scala *
+    - Clojure *
+- .NET
+    - C#
+    - F# *
+    - Visual Basic *
+- BEAM
+    - Elixir
+    - Erlang
+    - Gleam *
+- "Scripting"
+    - JavaScript
+    - TypeScript
+    - Python
+    - Ruby
+    - Perl *
+    - PHP *
+- Functional
+    - Haskell *
+    - LISP *
+    - Racket *
+    - Purescript *
+    - Elm *
