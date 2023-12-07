@@ -1,4 +1,4 @@
-local function parse_input(path)
+local function parse_input_part1(path)
   local f = io.open(path, "r")
   if not f then error("file not found " .. path) end
 
@@ -19,6 +19,19 @@ local function parse_input(path)
   return races
 end
 
+local function parse_input_part2(path)
+  local f = io.open(path, "r")
+  if not f then error("file not found " .. path) end
+
+  local time_in = f:read("*l")
+  local dist_in = f:read("*l")
+
+  local time_str = time_in:gsub("Time:", ""):gsub(" ", "")
+  local dist_str = dist_in:gsub("Distance:", ""):gsub(" ", "")
+
+  return {time=tonumber(time_str), dist=tonumber(dist_str)}
+end
+
 local function count_winning(game)
   local time = game.time
   local dist = game.dist
@@ -35,7 +48,7 @@ local function count_winning(game)
 end
 
 local function part1(path)
-  local races = parse_input(path)
+  local races = parse_input_part1(path)
 
   local product = 1
 
@@ -46,10 +59,18 @@ local function part1(path)
   print("Product: " .. product)
 end
 
+local function part2(path)
+  local race = parse_input_part2(path)
+
+  print("Count: " .. count_winning(race))
+end
+
 local function main()
   local f = nil
   if arg[1] == "part1" then
     f = part1
+  elseif arg[1] == "part2" then
+    f = part2
   else
     error("requred first arg: part1 or part2")
   end
