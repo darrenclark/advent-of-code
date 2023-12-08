@@ -6,8 +6,8 @@ To run:
 
 ```sh
 # part1
-nim compile --run cards.nim part1 input.txt
+nim compile --run cards_part1.nim input.txt
 
 # part2
-nim compile --run cards.nim part2 input.txt
+nim compile --run cards_part2.nim input.txt
 ```

@@ -14,6 +14,7 @@ Languages used:
 1. Bash
 1. PL/pgSQL
 1. Lua
+1. Nim
 
 Possible languages:
 
@@ -25,7 +26,6 @@ Possible languages:
     - Rust
     - Go
     - D *
-    - Nim *
     - Zig *
 - JVM
     - Java

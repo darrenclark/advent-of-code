@@ -7,7 +7,8 @@ import std/sequtils
 import std/tables
 
 # low to high value
-type Card = enum c2, c3, c4, c5, c6, c7, c8, c9, cT, cJ, cQ, cK, cA
+# J = joker
+type Card = enum cJ, c2, c3, c4, c5, c6, c7, c8, c9, cT, cQ, cK, cA
 
 # low to high value
 type
@@ -40,6 +41,7 @@ proc `<`(x, y: Hand): bool =
 
 proc parseCard(c: char): Card =
   case c
+  of 'J': return cJ
   of '2': return c2
   of '3': return c3
   of '4': return c4
@@ -49,13 +51,14 @@ proc parseCard(c: char): Card =
   of '8': return c8
   of '9': return c9
   of 'T': return cT
-  of 'J': return cJ
   of 'Q': return cQ
   of 'K': return cK
   of 'A': return cA
   else: quit(fmt"unexpected card char: {c}", 1)
 
-proc determineType(cards: seq[Card]): HandType =
+let nonJokers = [c2, c3, c4, c5, c6, c7, c8, c9, cT, cQ, cK, cA]
+
+proc determineTypeNoJokers(cards: seq[Card]): HandType =
   var counts = initCountTable[Card]()
   for card in cards:
     counts.inc(card)
@@ -81,6 +84,20 @@ proc determineType(cards: seq[Card]): HandType =
       return if numPairs >= 2: htTwoPair else: htOnePair
     else:
       return htHighCard
+
+proc determineType(cards: seq[Card]): HandType =
+  let ji = find(cards, cJ)
+  if ji >= 0:
+    var bestHandType = htHighCard
+    var cards = cards
+    for c in nonJokers:
+      cards[ji] = c
+      let handType = determineType(cards)
+      if handType > bestHandType:
+        bestHandType = handType
+    return bestHandType
+  else:
+    return determineTypeNoJokers(cards)
 
 proc parseInput(inputPath: string): seq[Hand] =
   for line in lines(inputPath):
