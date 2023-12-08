@@ -15,6 +15,7 @@ Languages used:
 1. PL/pgSQL
 1. Lua
 1. Nim
+1. Clojure
 
 Possible languages:
 
@@ -31,7 +32,6 @@ Possible languages:
     - Java
     - Kotlin
     - Scala *
-    - Clojure *
 - .NET
     - C#
     - F# *
@@ -53,3 +53,7 @@ Possible languages:
     - Racket *
     - Purescript *
     - Elm *
+- Jeff's recommendations:
+    - Pony *
+    - Carbon *
+    - cpp2 *
