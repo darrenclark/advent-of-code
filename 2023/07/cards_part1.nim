@@ -92,8 +92,12 @@ proc parseInput(inputPath: string): seq[Hand] =
     let cards = map(handStr, parseCard)
     result.add(Hand(cards: cards, bid: bid, handType: determineType(cards)))
 
-proc part1(inputPath: string) =
-  var hands = parseInput(inputPath)
+proc main() =
+  let params = commandLineParams()
+  if params.len() != 1:
+    quit("expected args: path/to/input.txt", 1)
+
+  var hands = parseInput(params[0])
   hands.sort()
 
   var winnings = 0
@@ -101,15 +105,5 @@ proc part1(inputPath: string) =
     winnings += h.bid * (i+1)
 
   echo "Winnings: ", winnings
-
-proc main() =
-  let params = commandLineParams()
-  if params.len() != 2:
-    quit("expected args: part1|part2 path/to/input.txt", 1)
-
-  if params[0] == "part1":
-    part1(params[1])
-  else:
-    quit("expected args: part1|part2 path/to/input.txt", 1)
 
 main()
