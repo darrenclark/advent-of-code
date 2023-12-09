@@ -17,7 +17,6 @@
 (defn left-or-right [side [left right]]
   (if (= side "L") left right))
 
-
 (defn count-until [f start {:keys [path nav-map]}]
   (reduce
    (fn [[curr n] dir]
@@ -44,14 +43,14 @@
    (filter #(str/ends-with? %1 "A") (keys nav-map))))
 
 ;; https://rosettacode.org/wiki/Least_common_multiple#Clojure
-(defn gcd 
-      [a b]
-      (if (zero? b)
-      a
-      (recur b, (mod a b))))
-(defn lcm 
-      [a b]
-      (/ (* a b) (gcd a b)))
+(defn gcd
+  [a b]
+  (if (zero? b)
+    a
+    (recur b, (mod a b))))
+(defn lcm
+  [a b]
+  (/ (* a b) (gcd a b)))
 (defn lcmv [& v] (reduce lcm v))
 
 (defn part2 [opts]
