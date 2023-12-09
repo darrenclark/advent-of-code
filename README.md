@@ -16,6 +16,7 @@ Languages used:
 1. Lua
 1. Nim
 1. Clojure
+1. Elixir
 
 Possible languages:
 
@@ -37,7 +38,6 @@ Possible languages:
     - F# *
     - Visual Basic *
 - BEAM
-    - Elixir
     - Erlang
     - Gleam *
 - "Scripting"
