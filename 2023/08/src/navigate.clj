@@ -17,14 +17,18 @@
 (defn left-or-right [side [left right]]
   (if (= side "L") left right))
 
-(defn count-until-zzz [{:keys [path nav-map]}]
+
+(defn count-until [f start {:keys [path nav-map]}]
   (reduce
    (fn [[curr n] dir]
-     (if (= curr "ZZZ")
+     (if (f curr)
        (reduced n)
        [(left-or-right dir (nav-map curr)) (+ n 1)]))
-   ["AAA" 0]
+   [start 0]
    (cycle path)))
+
+(defn count-until-zzz [parsed]
+  (count-until #(= "ZZZ" %1) "AAA" parsed))
 
 (defn part1 [opts]
   {:pre [(contains? opts :input)]}
@@ -32,27 +36,28 @@
         count (count-until-zzz parsed)]
     (println count)))
 
-(defn all-end-z [nodes]
-  (every? #(str/ends-with? %1 "Z") nodes))
+(defn count-until-ends-with-z [start parsed]
+  (count-until #(str/ends-with? %1 "Z") start parsed))
 
 (defn start-nodes [nav-map]
   (vec
    (filter #(str/ends-with? %1 "A") (keys nav-map))))
 
-(defn all-left-or-right [side nav-map nodes]
-  (mapv #(left-or-right side (nav-map %1)) nodes))
-
-(defn count-until-all-end-z [{:keys [path nav-map]}]
-  (reduce
-   (fn [[curr n] dir]
-     (if (all-end-z curr)
-       (reduced n)
-       [(all-left-or-right dir nav-map curr) (+ n 1)]))
-   [(start-nodes nav-map) 0]
-   (cycle path)))
+;; https://rosettacode.org/wiki/Least_common_multiple#Clojure
+(defn gcd 
+      [a b]
+      (if (zero? b)
+      a
+      (recur b, (mod a b))))
+(defn lcm 
+      [a b]
+      (/ (* a b) (gcd a b)))
+(defn lcmv [& v] (reduce lcm v))
 
 (defn part2 [opts]
   {:pre [(contains? opts :input)]}
   (let [parsed (parse (opts :input))
-        count (count-until-all-end-z parsed)]
-    (println count)))
+        starts (start-nodes (parsed :nav-map))
+        counts (map #(count-until-ends-with-z %1 parsed) starts)
+        result (apply lcmv counts)]
+    (println result)))
