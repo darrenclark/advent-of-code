@@ -359,21 +359,6 @@ static void part2(char *input_file) {
     }
   }
 
-  // print map
-  for (int y = 0; y < state.input.height * 3; y++) {
-    for (int x = 0; x < state.input.width * 3; x++) {
-      char o = '?';
-      switch (state.fill[y][x]) {
-      case FILL_UNKNOWN: o = '?'; break;
-      case FILL_PIPE: o = '#'; break;
-      case FILL_INSIDE: o = 'I'; break;
-      case FILL_OUTSIDE: o = ' '; break;
-      }
-      printf("%c", o);
-    }
-    printf("\n");
-  }
-
   printf("Enclosed squares: %d\n", enclosed_squares);
 }
 

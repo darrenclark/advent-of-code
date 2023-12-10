@@ -17,11 +17,11 @@ Languages used:
 1. Nim
 1. Clojure
 1. Elixir
+1. C
 
 Possible languages:
 
 - Native
-    - C
     - C++
     - Objective C
     - Swift
