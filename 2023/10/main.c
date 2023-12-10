@@ -76,7 +76,10 @@ typedef struct {
   location_t start;
   location_t current;
   direction_mask_t entered_from;
+  // part1
   int steps;
+  // part2
+  bool **path;
 } state_t;
 
 static char neighbour(state_t *state, int dx, int dy) {
@@ -206,37 +209,47 @@ static void step(state_t *state) {
   if (state->steps == 0) {
     // swap out S for actual pipe piece - to make rest of code nicer
     state->input.grid[state->start.y][state->start.x] = mask_to_char(ce);
+    // mark starting spot as part of path
+    state->path[state->start.y][state->start.x] = true;
   }
-
 
   if (ce & NORTH && (state->entered_from & NORTH) == 0) {
     state->current.y -= 1;
     state->entered_from = SOUTH;
-    state->steps += 1;
   } else if (ce & SOUTH && (state->entered_from & SOUTH) == 0) {
     state->current.y += 1;
     state->entered_from = NORTH;
-    state->steps += 1;
   } else if (ce & WEST && (state->entered_from & WEST) == 0) {
     state->current.x -= 1;
     state->entered_from = EAST;
-    state->steps += 1;
   } else if (ce & EAST && (state->entered_from & EAST) == 0) {
     state->current.x += 1;
     state->entered_from = WEST;
-    state->steps += 1;
   } else {
     exit_with_message("hit dead end");
+  }
+
+  state->steps += 1;
+  state->path[state->current.y][state->current.x] = true;
+}
+
+static void init_state(state_t *state, char *input_file) {
+  state->input = parse_input(input_file);
+  state->start = find_start(&state->input);
+
+  state->current = state->start;
+  state->entered_from = 0;
+  state->steps = 0;
+
+  state->path = calloc(state->input.height, sizeof(bool*));
+  for (int y = 0; y < state->input.height; y++) {
+    state->path[y] = calloc(state->input.width, sizeof(bool));
   }
 }
 
 static void part1(char *input_file) {
   state_t state;
-  state.input = parse_input(input_file);
-  state.start = find_start(&state.input);
-  state.current = state.start;
-  state.entered_from = 0;
-  state.steps = 0;
+  init_state(&state, input_file);
 
   step(&state);
   while (!location_equal(state.current, state.start)) {
@@ -246,6 +259,41 @@ static void part1(char *input_file) {
   printf("Steps to furthest from start: %01.f\n", ceil(state.steps / 2.0));
 }
 
+static void part2(char *input_file) {
+  state_t state;
+  init_state(&state, input_file);
+
+  step(&state);
+  while (!location_equal(state.current, state.start)) {
+    step(&state);
+  }
+
+  int enclosed_squares = 0;
+  bool inside;
+
+  for (int y = 0; y < state.input.height; y++) {
+    inside = false;
+    for (int x = 0; x < state.input.width; x++) {
+      char o = (state.path[y][x]) ? '#' : '.';
+
+      if (state.path[y][x]) {
+        inside = !inside;
+      } else {
+        if (inside) {
+          enclosed_squares += 1;
+          o = 'I';
+          //printf("enclosed x=%d y=%d\n", x, y);
+        }
+      }
+
+      printf("%c", o);
+    }
+    printf("\n");
+  }
+
+  printf("Enclosed squares: %d\n", enclosed_squares);
+}
+
 int main(int argc, char *argv[]) {
   if (argc != 3) {
     exit_with_message(usage);
@@ -253,6 +301,8 @@ int main(int argc, char *argv[]) {
 
   if (strcmp(argv[1], "part1") == 0) {
     part1(argv[2]);
+  } else if (strcmp(argv[1], "part2") == 0) {
+    part2(argv[2]);
   } else {
     exit_with_message(usage);
   }
