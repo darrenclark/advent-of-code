@@ -156,27 +156,12 @@ static location_t find_start(input_t *input) {
 
 static direction_mask_t connected_edges(state_t *state) {
   char current_cell = neighbour(state, 0, 0);
-  printf(
-      "current_cell=%c  N=%c S=%c W=%c E=%c\n",
-      current_cell,
-      neighbour(state, 0, -1),
-      neighbour(state, 0, 1),
-      neighbour(state, -1, 0),
-      neighbour(state, 1, 0)
-      );
   direction_mask_t current = edges(current_cell);
-
-  debug_direction_mask("current", current);
 
   direction_mask_t north = edges(neighbour(state, 0, -1));
   direction_mask_t south = edges(neighbour(state, 0, 1));
   direction_mask_t west = edges(neighbour(state, -1, 0));
   direction_mask_t east = edges(neighbour(state, 1, 0));
-
-  debug_direction_mask("north", north);
-  debug_direction_mask("south", south);
-  debug_direction_mask("east ", east);
-  debug_direction_mask("west ", west);
 
   direction_mask_t result = 0;
 
@@ -217,12 +202,10 @@ static direction_mask_t connected_edges(state_t *state) {
 
 static void step(state_t *state) {
   direction_mask_t ce = connected_edges(state);
-  debug_direction_mask("connected_edges", ce);
 
   if (state->steps == 0) {
     // swap out S for actual pipe piece - to make rest of code nicer
     state->input.grid[state->start.y][state->start.x] = mask_to_char(ce);
-    printf("update start to %c\n", mask_to_char(ce));
   }
 
 
@@ -230,24 +213,19 @@ static void step(state_t *state) {
     state->current.y -= 1;
     state->entered_from = SOUTH;
     state->steps += 1;
-    printf("NORTH current=(%d, %d)\n", state->current.x, state->current.y);
   } else if (ce & SOUTH && (state->entered_from & SOUTH) == 0) {
     state->current.y += 1;
     state->entered_from = NORTH;
     state->steps += 1;
-    printf("SOUTH current=(%d, %d)\n", state->current.x, state->current.y);
   } else if (ce & WEST && (state->entered_from & WEST) == 0) {
     state->current.x -= 1;
     state->entered_from = EAST;
     state->steps += 1;
-    printf("WEST current=(%d, %d)\n", state->current.x, state->current.y);
   } else if (ce & EAST && (state->entered_from & EAST) == 0) {
     state->current.x += 1;
     state->entered_from = WEST;
     state->steps += 1;
-    printf("EAST current=(%d, %d)\n", state->current.x, state->current.y);
   } else {
-    printf("current=(%d, %d)\n", state->current.x, state->current.y);
     exit_with_message("hit dead end");
   }
 }
@@ -259,8 +237,6 @@ static void part1(char *input_file) {
   state.current = state.start;
   state.entered_from = 0;
   state.steps = 0;
-
-  printf("state.input wxh: %d x %d\n", state.input.width, state.input.height);
 
   step(&state);
   while (!location_equal(state.current, state.start)) {
