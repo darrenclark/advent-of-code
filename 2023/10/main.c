@@ -58,6 +58,13 @@ void debug_direction_mask(const char *label, direction_mask_t m) {
   printf("%s n=%d s=%d w=%d e=%d\n", label, (m & NORTH) != 0, (m & SOUTH) != 0, (m & WEST) != 0, (m & EAST) != 0);
 }
 
+typedef enum {
+  FILL_UNKNOWN,
+  FILL_PIPE,
+  FILL_OUTSIDE,
+  FILL_INSIDE,
+} fill_t;
+
 typedef struct {
   char **grid;  // grid[y][x]
   int width, height;
@@ -79,7 +86,7 @@ typedef struct {
   // part1
   int steps;
   // part2
-  bool **path;
+  fill_t **fill;
 } state_t;
 
 static char neighbour(state_t *state, int dx, int dy) {
@@ -91,6 +98,10 @@ static char neighbour(state_t *state, int dx, int dy) {
   } else {
     return state->input.grid[y][x];
   }
+}
+
+static int fill_idx(int x, int dx) {
+  return x * 3 + 1 + dx;
 }
 
 static const int MAX_HEIGHT = 1024;
@@ -203,14 +214,81 @@ static direction_mask_t connected_edges(state_t *state) {
   return result;
 }
 
+static void put_fill_pipe(state_t *state, direction_mask_t ce) {
+  state->fill[fill_idx(state->current.y, 0)][fill_idx(state->current.x, 0)] = FILL_PIPE;
+
+  if (ce & NORTH) {
+    state->fill[fill_idx(state->current.y, -1)][fill_idx(state->current.x, 0)] = FILL_PIPE;
+  }
+
+  if (ce & SOUTH) {
+    state->fill[fill_idx(state->current.y, 1)][fill_idx(state->current.x, 0)] = FILL_PIPE;
+  }
+
+  if (ce & WEST) {
+    state->fill[fill_idx(state->current.y, 0)][fill_idx(state->current.x, -1)] = FILL_PIPE;
+  }
+
+  if (ce & EAST) {
+    state->fill[fill_idx(state->current.y, 0)][fill_idx(state->current.x, 1)] = FILL_PIPE;
+  }
+}
+
+static void fill_outside(state_t *state) {
+  int fill_width = state->input.width * 3;
+  int fill_height = state->input.height * 3;
+
+  // outer ring is always "outside"
+  for (int x = 0; x < fill_width; x++) {
+    state->fill[0][x] = FILL_OUTSIDE;
+    state->fill[fill_height - 1][x] = FILL_OUTSIDE;
+  }
+  for (int y = 0; y < fill_height; y++) {
+    state->fill[y][0] = FILL_OUTSIDE;
+    state->fill[y][fill_width - 1] = FILL_OUTSIDE;
+  }
+
+  int filled;
+
+  do {
+    filled = 0;
+
+    for (int y = 1; y < fill_height - 1; y++) {
+      for (int x = 1; x < fill_width - 1; x++) {
+        if (state->fill[y][x] != FILL_UNKNOWN) continue;
+
+        if (state->fill[y-1][x] == FILL_OUTSIDE ||
+            state->fill[y+1][x] == FILL_OUTSIDE ||
+            state->fill[y][x-1] == FILL_OUTSIDE ||
+            state->fill[y][x+1] == FILL_OUTSIDE) {
+          state->fill[y][x] = FILL_OUTSIDE;
+          filled += 1;
+        }
+      }
+    }
+  } while (filled > 0);
+}
+
+static void fill_inside(state_t *state) {
+  // (all other states have been marked at this point)
+  int fill_width = state->input.width * 3;
+  int fill_height = state->input.height * 3;
+  for (int y = 0; y < fill_height; y++) {
+    for (int x = 0; x < fill_width; x++) {
+      if (state->fill[y][x] == FILL_UNKNOWN) {
+        state->fill[y][x] = FILL_INSIDE;
+      }
+    }
+  }
+}
+
 static void step(state_t *state) {
   direction_mask_t ce = connected_edges(state);
+  put_fill_pipe(state, ce);
 
   if (state->steps == 0) {
     // swap out S for actual pipe piece - to make rest of code nicer
     state->input.grid[state->start.y][state->start.x] = mask_to_char(ce);
-    // mark starting spot as part of path
-    state->path[state->start.y][state->start.x] = true;
   }
 
   if (ce & NORTH && (state->entered_from & NORTH) == 0) {
@@ -230,7 +308,6 @@ static void step(state_t *state) {
   }
 
   state->steps += 1;
-  state->path[state->current.y][state->current.x] = true;
 }
 
 static void init_state(state_t *state, char *input_file) {
@@ -241,9 +318,9 @@ static void init_state(state_t *state, char *input_file) {
   state->entered_from = 0;
   state->steps = 0;
 
-  state->path = calloc(state->input.height, sizeof(bool*));
-  for (int y = 0; y < state->input.height; y++) {
-    state->path[y] = calloc(state->input.width, sizeof(bool));
+  state->fill = calloc(state->input.height * 3, sizeof(fill_t*));
+  for (int y = 0; y < state->input.height * 3; y++) {
+    state->fill[y] = calloc(state->input.width * 3, sizeof(fill_t));
   }
 }
 
@@ -268,31 +345,30 @@ static void part2(char *input_file) {
     step(&state);
   }
 
+  fill_outside(&state);
+  fill_inside(&state);
+
   int enclosed_squares = 0;
-  bool inside;
 
   for (int y = 0; y < state.input.height; y++) {
-    inside = false;
     for (int x = 0; x < state.input.width; x++) {
-      char o = (state.path[y][x]) ? '#' : '.';
+      int fill_x = fill_idx(x, 0);
+      int fill_y = fill_idx(y, 0);
+      if (state.fill[fill_y][fill_x] == FILL_INSIDE)
+        enclosed_squares += 1;
+    }
+  }
 
-      if (state.path[y][x]) {
-        // TODO: unhack this
-        state.current.x = x;
-        state.current.y = y;
-        direction_mask_t e = connected_edges(&state);
-        o = mask_to_char(e);
-
-        if (e & (NORTH | SOUTH))
-          inside = !inside;
-      } else {
-        if (inside) {
-          enclosed_squares += 1;
-          o = 'I';
-          //printf("enclosed x=%d y=%d\n", x, y);
-        }
+  // print map
+  for (int y = 0; y < state.input.height * 3; y++) {
+    for (int x = 0; x < state.input.width * 3; x++) {
+      char o = '?';
+      switch (state.fill[y][x]) {
+      case FILL_UNKNOWN: o = '?'; break;
+      case FILL_PIPE: o = '#'; break;
+      case FILL_INSIDE: o = 'I'; break;
+      case FILL_OUTSIDE: o = ' '; break;
       }
-
       printf("%c", o);
     }
     printf("\n");
