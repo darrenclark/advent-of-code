@@ -277,7 +277,14 @@ static void part2(char *input_file) {
       char o = (state.path[y][x]) ? '#' : '.';
 
       if (state.path[y][x]) {
-        inside = !inside;
+        // TODO: unhack this
+        state.current.x = x;
+        state.current.y = y;
+        direction_mask_t e = connected_edges(&state);
+        o = mask_to_char(e);
+
+        if (e & (NORTH | SOUTH))
+          inside = !inside;
       } else {
         if (inside) {
           enclosed_squares += 1;
