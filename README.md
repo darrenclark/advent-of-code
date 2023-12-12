@@ -18,11 +18,11 @@ Languages used:
 1. Clojure
 1. Elixir
 1. C
+1. C++
 
 Possible languages:
 
 - Native
-    - C++
     - Objective C
     - Swift
     - Rust

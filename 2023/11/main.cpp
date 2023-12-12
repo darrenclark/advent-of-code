@@ -1,21 +1,59 @@
 #include <numeric>
+#include <algorithm>
 #include <iostream>
 #include <fstream>
 #include <vector>
 #include <stdexcept>
+
+struct Expansions {
+  long size;
+  std::vector<int> rows;
+  std::vector<int> columns;
+
+  Expansions(long size): size(size), rows(), columns() {}
+
+  long extraSpaceBetweenColumns(int left, int right) {
+    long result = 0;
+    for (auto c: columns) {
+      if (left < c && c < right) result += size;
+    }
+    return result;
+  }
+
+  long extraSpaceBetweenRows(int top, int bottom) {
+    long result = 0;
+    for (auto r: rows) {
+      if (top < r && r < bottom) result += size;
+    }
+    return result;
+  }
+};
 
 struct Galaxy {
   int x, y;
   Galaxy(): x(0), y(0) {}
   Galaxy(int x, int y): x(x), y(y) {}
 
-  int distance(Galaxy& other) {
-    int dx = abs(x - other.x);
-    int dy = abs(y - other.y);
+  long distance(Galaxy& other, Expansions& expansions) {
+    long dx = abs(x - other.x);
+    long dy = abs(y - other.y);
+
+    if (dx != 0) {
+      int left = std::min(x, other.x);
+      int right = std::max(x, other.x);
+      dx += expansions.extraSpaceBetweenColumns(left, right);
+    }
+
+    if (dy != 0) {
+      int top = std::min(y, other.y);
+      int bottom = std::max(y, other.y);
+      dy += expansions.extraSpaceBetweenRows(top, bottom);
+    }
 
     return dx + dy;
   }
 };
+
 
 struct Grid {
   int width, height;
@@ -69,6 +107,17 @@ struct Grid {
     width += 1;
   }
 
+  Expansions expansions(long size) {
+    Expansions result(size);
+    for (int x = 0; x < width; x++) {
+      if (colEmpty(x)) result.columns.push_back(x);
+    }
+    for (int y = 0; y < height; y++) {
+      if (rowEmpty(y)) result.rows.push_back(y);
+    }
+    return result;
+  }
+
   std::vector<Galaxy> galaxies() {
     std::vector<Galaxy> result;
     for (int y = 0; y < height; y++) {
@@ -81,6 +130,18 @@ struct Grid {
     return result;
   }
 };
+
+long sumShortestPaths(Grid grid, long expansionSize) {
+  auto expansions = grid.expansions(expansionSize);
+  auto galaxies = grid.galaxies();
+  long sumOfPaths = 0;
+  for (auto it = galaxies.begin(); it != galaxies.end() - 1; ++it) {
+    sumOfPaths += std::accumulate(it + 1, galaxies.end(), 0L, [&](auto sum, auto& g) {
+        return sum + g.distance(*it, expansions);
+    });
+  }
+  return sumOfPaths;
+}
 
 int main(int argc, const char *argv[]) {
   if (argc != 2) {
@@ -96,21 +157,6 @@ int main(int argc, const char *argv[]) {
     grid.addRow(line);
   }
 
-  // galaxy expansion
-  for (int i = grid.height - 1; i >= 0; i--) {
-    if (grid.rowEmpty(i)) grid.duplicateRow(i);
-  }
-  for (int i = grid.width - 1; i >= 0; i--) {
-    if (grid.colEmpty(i)) grid.duplicateCol(i);
-  }
-
-  auto galaxies = grid.galaxies();
-  int sumOfPaths = 0;
-  for (auto it = galaxies.begin(); it != galaxies.end() - 1; ++it) {
-    sumOfPaths += std::accumulate(it + 1, galaxies.end(), 0, [&](auto sum, auto& g) {
-        return sum + g.distance(*it);
-    });
-  }
-
-  std::cout << "[part 1] Sum of shortest paths: " << sumOfPaths << std::endl;
+  std::cout << "[part 1] Sum of shortest paths: " << sumShortestPaths(grid, 1) << std::endl;
+  std::cout << "[part 2] Sum of shortest paths: " << sumShortestPaths(grid, 999999) << std::endl;
 }
