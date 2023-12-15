@@ -1,31 +1,106 @@
 #import <Foundation/Foundation.h>
 #import <vector>
 #import <string>
+#import <utility>
+#import <optional>
+#import <unordered_map>
 
 class Platform {
   std::vector<std::string> grid;
-
-  using It = std::vector<std::string>::iterator;
+  int width;
 
 public:
   void addRow(const std::string& row) {
+    if (width == 0) width = row.size();
     grid.push_back(row);
   }
 
-  void tiltNorth() {
-    for (auto rowIt = grid.begin() + 1; rowIt != grid.end(); ++rowIt) {
-      for (auto colIt = rowIt->begin(); colIt != rowIt->end(); ++colIt) {
-        if (*colIt == 'O') {
-          size_t colIndex = colIt - rowIt->begin();
-          auto destIt = findSlideDestination(rowIt - 1, colIndex);
-          if (destIt != grid.end()) {
-            NSLog(@"moving: %lu", colIndex);
-            *colIt = '.';
-            destIt->at(colIndex) = 'O';
+  void tilt(int dx, int dy) {
+    if (dy == -1) {
+      // north
+      for (long row = 1; row < grid.size(); row++) {
+        for (long col = 0; col < grid[row].size(); col++) {
+          char c = grid[row][col];
+          if (c == 'O') {
+            auto dest = findSlideDestination(col, row, dx, dy);
+            if (dest.has_value()) {
+              grid[row][col] = '.';
+              grid[dest->second][dest->first] = 'O';
+            }
+          }
+        }
+      }
+    } else if (dy == 1) {
+      // south
+      for (long row = grid.size() - 2; row >= 0; row--) {
+        for (long col = 0; col < grid[row].size(); col++) {
+          char c = grid[row][col];
+          if (c == 'O') {
+            auto dest = findSlideDestination(col, row, dx, dy);
+            if (dest.has_value()) {
+              grid[row][col] = '.';
+              grid[dest->second][dest->first] = 'O';
+            }
+          }
+        }
+      }
+    } else if (dx == -1) {
+      // west
+      for (long row = 0; row < grid.size(); row++) {
+        for (long col = 1; col < grid[row].size(); col++) {
+          char c = grid[row][col];
+          if (c == 'O') {
+            auto dest = findSlideDestination(col, row, dx, dy);
+            if (dest.has_value()) {
+              grid[row][col] = '.';
+              grid[dest->second][dest->first] = 'O';
+            }
+          }
+        }
+      }
+    } else if (dx == 1) {
+      // east
+      for (long row = 0; row < grid.size(); row++) {
+        for (long col = grid[row].size() - 2; col >= 0; col--) {
+          char c = grid[row][col];
+          if (c == 'O') {
+            auto dest = findSlideDestination(col, row, dx, dy);
+            if (dest.has_value()) {
+              grid[row][col] = '.';
+              grid[dest->second][dest->first] = 'O';
+            }
           }
         }
       }
     }
+  }
+
+  long calculateLoadOnCycleN(long n) {
+    std::unordered_map<std::string, bool> seenPositions;
+    long i = 0;
+
+    while (!seenPosition(seenPositions)) {
+      cycle(1);
+      i += 1;
+    }
+
+    long firstRepeat = i;
+
+    i = 0;
+    seenPositions.clear();
+
+    while (!seenPosition(seenPositions)) {
+      cycle(1);
+      i += 1;
+    }
+
+    long period = i;
+
+    // "jump" to position as if we were on cycle 'n'
+    long moreCycles = (n - firstRepeat) % period;
+    cycle(moreCycles);
+
+    return calculateLoad();
   }
 
   long calculateLoad() {
@@ -39,27 +114,53 @@ public:
     return load;
   }
 
-  void print() {
-    for (auto rowIt = grid.begin(); rowIt != grid.end(); ++rowIt) {
-      NSLog(@"%s", rowIt->data());
-    }
-  }
-
 private:
-  It findSlideDestination(It rowIt, size_t colIndex) {
-    It result = grid.end();
+  std::optional<std::pair<long, long>> findSlideDestination(long x, long y, int dx, int dy) {
+    std::optional<std::pair<long, long>> result = std::nullopt;
 
-    for (; rowIt >= grid.begin(); --rowIt) {
-      char c = rowIt->at(colIndex);
-      NSLog(@"%c on %lu", c, (rowIt - grid.begin()));
-      if (c == '.') {
-        result = rowIt;
+    x += dx;
+    y += dy;
+
+    while (x >= 0 && x < width && y >= 0 && y < grid.size()) {
+      if (grid[y][x] == '.') {
+        result = std::make_pair(x, y);
       } else {
-        return result;
+        break;
       }
+
+      x += dx;
+      y += dy;
     }
 
     return result;
+  }
+
+  void cycle(long nTimes) {
+    for (long i = 0; i < nTimes; i++) {
+      tilt(0, -1);
+      tilt(-1, 0);
+      tilt(0, 1);
+      tilt(1, 0);
+    }
+  }
+
+  bool seenPosition(std::unordered_map<std::string, bool>& seenPositions) {
+    auto pos = position();
+    auto it = seenPositions.find(pos);
+    if (it != seenPositions.end()) {
+      return true;
+    } else {
+      seenPositions[pos] = true;
+      return false;
+    }
+  }
+
+  std::string position() {
+    std::string s;
+    s.reserve(grid.size() * width);
+    for (auto& row : grid)
+      s.append(row);
+    return s;
   }
 };
 
@@ -81,21 +182,21 @@ int main(int argc, char *argv[]) {
     return 1;
   }
 
-  Platform p;
+  Platform platform;
 
-  NSLog(@"Input:");
   for (NSString *line in [fileContents componentsSeparatedByString:@"\n"]) {
     if (line.length > 0) {
-      NSLog(@"%@", line);
-      p.addRow(line.UTF8String);
+      platform.addRow(line.UTF8String);
     }
   }
 
-  p.tiltNorth();
-  NSLog(@"Tilted:");
-  p.print();
+  Platform platformPart1 = platform;
+  platformPart1.tilt(0, -1);
+  NSLog(@"[Part 1] Total load after sliding north: %lu", platformPart1.calculateLoad());
 
-  NSLog(@"[Part 1] Total load: %lu", p.calculateLoad());
+  Platform platformPart2 = platform;
+  long targetCycles = 1000000000;
+  NSLog(@"[Part 2] Total load on cycle %ld: %lu", targetCycles, platformPart2.calculateLoadOnCycleN(targetCycles));
 
   return 0;
 }
