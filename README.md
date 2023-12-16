@@ -22,6 +22,7 @@ Languages used:
 1. Objective C
 1. *TODO*
 1. Objective C++
+1. Erlang
 
 Possible languages:
 
@@ -41,7 +42,6 @@ Possible languages:
     - F# *
     - Visual Basic *
 - BEAM
-    - Erlang
     - Gleam *
 - "Scripting"
     - JavaScript

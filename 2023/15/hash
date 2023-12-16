@@ -1,0 +1,34 @@
+#!/usr/bin/env escript
+%% -*- erlang -*-
+
+main([InputFile]) ->
+  {ok, Input} = file:read_file(InputFile),
+  Result = process(Input),
+  _ = io:fwrite("[PART 1] Sum of hash results: ~w~n", [Result]),
+  ok.
+
+process(Input) ->
+  process(Input, 0).
+
+process(<<>>, Acc) ->
+  Acc;
+
+process(Input, Acc) ->
+  {Hash, Rest} = process_step(Input),
+  process(Rest, Acc + Hash).
+
+process_step(Rest) ->
+  process_step(Rest, 0).
+
+process_step(<<"\n", Rest/binary>>, Acc) ->
+  process_step(Rest, Acc);
+
+process_step(<<",", Rest/binary>>, Acc) ->
+  {Acc, Rest};
+
+process_step(<<>>, Acc) ->
+  {Acc, <<>>};
+
+process_step(<<C, Rest/binary>>, Acc) ->
+  Acc1 = ((Acc + C) * 17) rem 256,
+  process_step(Rest, Acc1).
