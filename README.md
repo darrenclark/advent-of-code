@@ -19,15 +19,14 @@ Languages used:
 1. Elixir
 1. C
 1. C++
-1. Objective C
-1. *TODO*
+1. Objective C  *TODO: Part 2*
+1. JavaScript  *TODO: Part 2*
 1. Objective C++
 1. Erlang
 
 Possible languages:
 
 - Native
-    - Objective C
     - Swift
     - Rust
     - Go
@@ -44,7 +43,6 @@ Possible languages:
 - BEAM
     - Gleam *
 - "Scripting"
-    - JavaScript
     - TypeScript
     - Python
     - Ruby
