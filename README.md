@@ -23,13 +23,13 @@ Languages used:
 1. JavaScript  *TODO: Part 2*
 1. Objective C++
 1. Erlang
+1. Go
 
 Possible languages:
 
 - Native
     - Swift
     - Rust
-    - Go
     - D *
     - Zig *
 - JVM
