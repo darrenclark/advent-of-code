@@ -3,32 +3,97 @@
 
 main([InputFile]) ->
   {ok, Input} = file:read_file(InputFile),
-  Result = process(Input),
-  _ = io:fwrite("[PART 1] Sum of hash results: ~w~n", [Result]),
+  Part1 = part1(Input),
+  _ = io:fwrite("[PART 1] Sum of hash results: ~w~n", [Part1]),
+  Part2 = part2(Input),
+  _ = io:fwrite("[PART 2] Focusing power: ~w~n", [Part2]),
   ok.
 
-process(Input) ->
-  process(Input, 0).
+part1(Input) ->
+  part1(Input, 0).
 
-process(<<>>, Acc) ->
+part1(<<>>, Acc) ->
   Acc;
 
-process(Input, Acc) ->
-  {Hash, Rest} = process_step(Input),
-  process(Rest, Acc + Hash).
+part1(Input, Acc) ->
+  {Hash, Rest} = hash_step(Input),
+  part1(Rest, Acc + Hash).
 
-process_step(Rest) ->
-  process_step(Rest, 0).
+hash_step(Rest) ->
+  hash_step(Rest, 0).
 
-process_step(<<"\n", Rest/binary>>, Acc) ->
-  process_step(Rest, Acc);
+hash_step(<<"\n", Rest/binary>>, Acc) ->
+  hash_step(Rest, Acc);
 
-process_step(<<",", Rest/binary>>, Acc) ->
+hash_step(<<",", Rest/binary>>, Acc) ->
   {Acc, Rest};
 
-process_step(<<>>, Acc) ->
+hash_step(<<>>, Acc) ->
   {Acc, <<>>};
 
-process_step(<<C, Rest/binary>>, Acc) ->
+hash_step(<<C, Rest/binary>>, Acc) ->
   Acc1 = ((Acc + C) * 17) rem 256,
-  process_step(Rest, Acc1).
+  hash_step(Rest, Acc1).
+
+% Part 2
+
+part2(Input) ->
+  Boxes = maps:from_keys(lists:seq(0, 255), []),
+  Boxes1 = install_lenses(Boxes, Input),
+  sum_of_focusing_power(Boxes1).
+
+install_lenses(Boxes, <<>>) -> Boxes;
+
+install_lenses(Boxes, Input) ->
+  {Box, Label, Op, FocalLen, Rest} = parse_step(Input, 0, <<>>, nil, 0),
+  Fun = case Op of
+    put ->
+      fun(B) ->
+                install_lense(B, {Label, FocalLen})
+            end;
+    drop ->
+      fun(B) ->
+                remove_lense(B, Label)
+            end
+  end,
+  Boxes1 = maps:update_with(Box, Fun, Boxes),
+  install_lenses(Boxes1, Rest).
+
+install_lense(BoxList, {K, FocalLen}) ->
+  case lists:keyfind(K, 1, BoxList) of
+    false -> BoxList ++ [{K, FocalLen}];
+    _ -> lists:keyreplace(K, 1, BoxList, {K, FocalLen})
+  end.
+
+remove_lense(BoxList, K) ->
+  lists:keydelete(K, 1, BoxList).
+
+parse_step(<<T, Rest/binary>>, Box, Label, Op, FocalLen) when (T == $,) orelse (T == $\n) ->
+  {Box, Label, Op, FocalLen, Rest};
+
+parse_step(<<N, Rest/binary>>, Box, Label, Op, _) when N >= $0 andalso N =< $9 ->
+  parse_step(Rest, Box, Label, Op, N - $0);
+
+parse_step(<<C, Rest/binary>>, Box, Label, Op, FocalLen) when (C >= $a) andalso (C =< $z) ->
+  Box1 = ((Box + C) * 17) rem 256,
+  parse_step(Rest, Box1, <<Label/binary, C>>, Op, FocalLen);
+
+parse_step(<<"=", Rest/binary>>, Box, Label, _, FocalLen) ->
+  parse_step(Rest, Box, Label, put, FocalLen);
+
+parse_step(<<"-", Rest/binary>>, Box, Label, _, FocalLen) ->
+  parse_step(Rest, Box, Label, drop, FocalLen).
+
+sum_of_focusing_power(Boxes) ->
+  sum_of_focusing_power(Boxes, 0, 0).
+
+sum_of_focusing_power(_, 256, Acc) -> Acc;
+
+sum_of_focusing_power(Boxes, Box, Acc) ->
+  BoxList = maps:get(Box, Boxes),
+  Fun = fun ({_, V}, {Pow, I}) ->
+            Pow1 = (Box + 1) * I * V,
+            {Pow + Pow1, I + 1}
+        end,
+  {Pow, _} = lists:foldl(Fun, {0, 1}, BoxList),
+  sum_of_focusing_power(Boxes, Box + 1, Acc + Pow).
