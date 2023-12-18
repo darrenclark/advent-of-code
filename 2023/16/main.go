@@ -96,6 +96,15 @@ func (c *contraption) countEnergized() int {
 	return count
 }
 
+func (c *contraption) reset() {
+	c.visited = make(map[posAndDir]bool)
+	for row := 0; row < c.height; row++ {
+		for col := 0; col < c.width; col++ {
+			c.energized[row][col] = false
+		}
+	}
+}
+
 func main() {
 	if len(os.Args) != 2 {
 		fmt.Println("usage: go run main.go path/to/input.txt")
@@ -114,4 +123,36 @@ func main() {
 	c.castBeam(0, 0, 1, 0)
 
 	fmt.Printf("[PART 1] Number of energized tiles: %d\n", c.countEnergized())
+
+	largest := 0
+
+	for row := 0; row < c.height; row++ {
+		// start on left side
+		c.reset()
+		c.castBeam(0, row, 1, 0)
+		res := c.countEnergized()
+		largest = max(largest, res)
+
+		// start on right side
+		c.reset()
+		c.castBeam(c.width-1, row, -1, 0)
+		res = c.countEnergized()
+		largest = max(largest, res)
+	}
+
+	for col := 0; col < c.height; col++ {
+		// start on top side
+		c.reset()
+		c.castBeam(col, 0, 1, 0)
+		res := c.countEnergized()
+		largest = max(largest, res)
+
+		// start on bottom side
+		c.reset()
+		c.castBeam(col, c.height-1, -1, 0)
+		res = c.countEnergized()
+		largest = max(largest, res)
+	}
+
+	fmt.Printf("[PART 2] Number of energized tiles: %d\n", largest)
 }
