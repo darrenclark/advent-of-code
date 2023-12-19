@@ -24,6 +24,9 @@ Languages used:
 1. Objective C++
 1. Erlang
 1. Go
+1. *TODO*
+1. Ruby *TODO: Part 2*
+1. Java *TODO: Part 2*
 
 Possible languages:
 
@@ -33,7 +36,6 @@ Possible languages:
     - D *
     - Zig *
 - JVM
-    - Java
     - Kotlin
     - Scala *
 - .NET
@@ -45,7 +47,6 @@ Possible languages:
 - "Scripting"
     - TypeScript
     - Python
-    - Ruby
     - Perl *
     - PHP *
 - Functional
