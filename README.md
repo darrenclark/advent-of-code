@@ -20,7 +20,7 @@ Languages used:
 1. C
 1. C++
 1. Objective C  *TODO: Part 2*
-1. JavaScript  *TODO: Part 2*
+1. JavaScript  *TODO: Part 2 needs fixing*
 1. Objective C++
 1. Erlang
 1. Go
