@@ -27,6 +27,7 @@ Languages used:
 1. *TODO*
 1. Ruby *TODO: Part 2*
 1. Java *TODO: Part 2*
+1. C# *TODO: Part 2*
 
 Possible languages:
 
@@ -39,7 +40,6 @@ Possible languages:
     - Kotlin
     - Scala *
 - .NET
-    - C#
     - F# *
     - Visual Basic *
 - BEAM
