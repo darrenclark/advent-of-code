@@ -6,7 +6,37 @@
 
 var inputText = File.ReadAllText(args[0]);
 
-var modules = inputText.Split('\n').Where(l => l.Length > 0).Select(Module (line) =>
+var machinePart1 = new Machine(Parser.ParseInput(inputText));
+
+for (int i = 0; i < 1000; i++)
+{
+    machinePart1.PushButton();
+}
+
+var part1Answer = machinePart1.HighPulsesSent * machinePart1.LowPulsesSent;
+Console.WriteLine("[PART 1] low pulses X high pulses = {0}", part1Answer);
+
+Console.WriteLine("TODO: Part 2");
+
+/*
+var machinePart2 = new Machine(Parser.ParseInput(inputText));
+
+var part2Answer = 0L;
+while (machinePart2.RxLowPulsesLastButtonPress != 1) {
+  part2Answer += 1;
+  machinePart2.PushButton();
+}
+
+Console.WriteLine("[PART 2] pressed until 1 low to rx: {0}", part2Answer);
+*/
+
+return 0;
+
+
+class Parser
+{
+  public static List<Module> ParseInput(string inputText) {
+return inputText.Split('\n').Where(l => l.Length > 0).Select(Module (line) =>
 {
     var parts = line.Split("->").ToList();
 
@@ -33,17 +63,8 @@ var modules = inputText.Split('\n').Where(l => l.Length > 0).Select(Module (line
     }
 }).ToList();
 
-var machine = new Machine(modules);
-
-for (int i = 0; i < 1000; i++)
-{
-    machine.PushButton();
+  }
 }
-
-var part1Answer = machine.HighPulsesSent * machine.LowPulsesSent;
-Console.WriteLine("[PART 1] low pulses X high pulses = {0}", part1Answer);
-
-return 0;
 
 class Machine
 {
@@ -51,6 +72,7 @@ class Machine
 
     public long HighPulsesSent { get; private set; }
     public long LowPulsesSent { get; private set; }
+    public long RxLowPulsesLastButtonPress { get; private set; }
 
     public Machine(List<Module> modules)
     {
@@ -78,6 +100,8 @@ class Machine
 
     public void PushButton()
     {
+      RxLowPulsesLastButtonPress = 0;
+
         var pulses = new Queue<Pulse>();
         pulses.Enqueue(new Pulse("button", "broadcaster", false));
 
@@ -86,6 +110,8 @@ class Machine
         {
             if (pulse.IsHigh) HighPulsesSent += 1;
             else LowPulsesSent += 1;
+
+            if (pulse.To == "rx" && pulse.IsLow) RxLowPulsesLastButtonPress += 1;
 
             var newPulses = Modules[pulse.To].HandlePulse(pulse);
             newPulses.ForEach(pulses.Enqueue);
