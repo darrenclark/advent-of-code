@@ -2,6 +2,8 @@
 
 https://adventofcode.com/2023/day/12
 
+Part 2 adapted from u/4HbQ's solution [here](https://www.reddit.com/r/adventofcode/comments/18ge41g/comment/kd0ki5t/).
+
 To run:
 
 ```sh
