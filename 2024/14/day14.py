@@ -1,9 +1,10 @@
 import re
 from collections import defaultdict
+import itertools
 
-# INPUT = 'sample_input.txt'
-# WIDTH = 11
-# HEIGHT = 7
+#INPUT = 'sample_input.txt'
+#WIDTH = 11
+#HEIGHT = 7
 
 INPUT = 'input.txt'
 WIDTH = 101
@@ -40,3 +41,30 @@ for v in q.values():
     s *= v
 
 print('Part 1: ', s)
+
+# Determined by via commented code out below
+print('Part 2: ', 6446)
+
+#for i in itertools.count(start=0):
+#    f = set([simulate(r, i) for r in robots])
+#
+#    s = ""
+#    p = False
+#
+#    for y in range(HEIGHT):
+#        c = 0
+#        for x in range(WIDTH):
+#            if (x, y) in f:
+#                s += '#'
+#                c += 1
+#            else:
+#                s += '.'
+#        s += '\n'
+#        if c > 30:
+#            p = True
+#
+#    if not p:
+#        continue
+#
+#    print("===== ", i, " =====")
+#    print(s)
