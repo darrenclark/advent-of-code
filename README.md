@@ -2,6 +2,17 @@
 
 https://adventofcode.com/
 
+
+## 2024
+
+Learnings:
+
+- Extended Euclid Algorithm
+- numpy.lingalg.solve (?)
+- First time implementing dijkstra's algorithm
+- Python heapq
+
+
 ## 2023
 
 Goal: Use a different language every day.
