@@ -1,0 +1,65 @@
+Register A: 27575648
+Register B: 0
+Register C: 0
+
+Program:
+
+2,4,    bst  B = A % 8
+1,2,    bxl  B = B ^ 2
+7,5,    cdv  C = A // 2^^B
+4,1,    bxc  B = B ^ C
+1,3,    bxl  B = B ^ 3
+5,5,    out      B % 8
+0,3,    adv  A = A // 2^^3
+3,0     jnz  A?
+
+observations:
+
+- A controls how many loops we do
+  - Divided by 8 every loop
+  - A needs to be at least pow(8, 15) to output 14 elements to match input program length
+  - From A, each loop uses:
+    - 3 LSB (A%8)
+    - 
+
+
+
+SSA form of loop body:
+
+b1 =  A % 8
+b2 =  b1 ^ 2
+c1 =  A // 2^^b2
+b3 =  b2 ^ c1
+out = b3 % 8
+
+Optimized loop body:
+
+out = (((A % 8) ^ 2) ^ (A // 2^^((A % 8) ^ 2))) % 8
+
+
+----
+
+From running the program with: a in [0, 32767] and seeing what matches the last digits of program:
+
+1     1
+8     1000
+67    1000011
+70    1000110
+541   1000011101
+565   1000110101
+4527  1000110101111
+4524  1000110101100
+4520  1000110101000
+4328  1000011101000
+
+67    1000011
+541   1000011101
+4328  1000011101000
+70    1000110
+565   1000110101
+4527  1000110101111
+4524  1000110101100
+4520  1000110101000
+
+
+Used this pattern to implement python code to search
