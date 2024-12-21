@@ -3,9 +3,9 @@ import intcode
 INPUT = 'input.txt'
 
 with open(INPUT) as f:
-    prog = intcode.parse(f.read())
+    mem = intcode.parse(f.read())
 
-ic = intcode.Intcode(prog)
+ic = intcode.Intcode(mem)
 ic.input = [1]
 ic.run()
 

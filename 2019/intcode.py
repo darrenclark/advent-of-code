@@ -1,16 +1,16 @@
-def parse(prog_txt):
-    return list(int(i) for i in prog_txt.strip().split(','))
+def parse(mem_txt):
+    return list(int(i) for i in mem_txt.strip().split(','))
 
-_POSITION_MODE = 0
+_ADDRESS_MODE = 0
 _IMMEDIATE_MODE = 1
 
 class Panic(Exception):
     pass
 
 class Intcode:
-    def __init__(self, prog: list[int]):
+    def __init__(self, mem: list[int]):
         self.ip = 0
-        self.prog = prog
+        self.mem = mem
         self.input = []
         self._input_i = 0
         self.output = []
@@ -24,16 +24,16 @@ class Intcode:
                     # TODO: is opcode 0 subtraction? it seems to work, 
                     #   don't have day2 part 2 avaialble on plane
                     a1,a2,a3 = self.read(a1m), self.read(a2m), self.read_dst(a3m)
-                    self.prog[a3] = a1 - a2
+                    self.mem[a3] = a1 - a2
                 case (1, a1m, a2m, a3m):
                     a1,a2,a3 = self.read(a1m), self.read(a2m), self.read_dst(a3m)
-                    self.prog[a3] = a1 + a2
+                    self.mem[a3] = a1 + a2
                 case (2, a1m, a2m, a3m):
                     a1,a2,a3 = self.read(a1m), self.read(a2m), self.read_dst(a3m)
-                    self.prog[a3] = a1 * a2
+                    self.mem[a3] = a1 * a2
                 case (3, a1m, _, _):
                     dst = self.read_dst(a1m)
-                    self.prog[dst] = self.read_input()
+                    self.mem[dst] = self.read_input()
                 case (4, a1m, _, _):
                     self.write_output(self.read(a1m))
                 case (99, _, _, _):
@@ -42,7 +42,7 @@ class Intcode:
                     self.panic(f'Unexpected opcode: {op}')
 
     def read_op(self):
-        r = self.prog[self.ip]
+        r = self.mem[self.ip]
         self.ip += 1
 
         op = r % 100
@@ -53,16 +53,16 @@ class Intcode:
         return (op, a1m, a2m, a3m)
 
     def read_dst(self, mode):
-        assert mode == _POSITION_MODE
-        v = self.prog[self.ip]
+        assert mode == _ADDRESS_MODE
+        v = self.mem[self.ip]
         self.ip += 1
         return v
 
     def read(self, mode):
-        v = self.prog[self.ip]
+        v = self.mem[self.ip]
         self.ip += 1
-        if mode == _POSITION_MODE:
-            return self.prog[v]
+        if mode == _ADDRESS_MODE:
+            return self.mem[v]
         elif mode == _IMMEDIATE_MODE:
             return v
         else:
@@ -77,7 +77,7 @@ class Intcode:
         self.output.append(val)
 
     def panic(self, reason):
-        at = self.prog[max(0, self.ip - 10):min(self.ip, len(self.prog))]
+        at = self.mem[max(0, self.ip - 10):min(self.ip, len(self.mem))]
 
         raise Panic(f"""
         Panic!
