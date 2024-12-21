@@ -10,7 +10,7 @@ class Panic(Exception):
 class Intcode:
     def __init__(self, mem: list[int]):
         self.ip = 0
-        self.mem = mem
+        self.mem = mem.copy()
         self.input = []
         self._input_i = 0
         self.output = []
@@ -31,6 +31,22 @@ class Intcode:
                     self.mem[dst] = self.read_input()
                 case (4, a1m, _, _):
                     self.write_output(self.read(a1m))
+                case (5, a1m, a2m, _):
+                    v = self.read(a1m)
+                    t = self.read(a2m)
+                    if v != 0:
+                        self.ip = t
+                case (6, a1m, a2m, _):
+                    v = self.read(a1m)
+                    t = self.read(a2m)
+                    if v == 0:
+                        self.ip = t
+                case (7, a1m, a2m, a3m):
+                    a1,a2,dst = self.read(a1m), self.read(a2m), self.read_dst(a3m)
+                    self.mem[dst] = int(a1 < a2)
+                case (8, a1m, a2m, a3m):
+                    a1,a2,dst = self.read(a1m), self.read(a2m), self.read_dst(a3m)
+                    self.mem[dst] = int(a1 == a2)
                 case (99, _, _, _):
                     break
                 case _:
