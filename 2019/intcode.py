@@ -20,11 +20,6 @@ class Intcode:
             op = self.read_op()
 
             match op:
-                case (0, a1m, a2m, a3m):
-                    # TODO: is opcode 0 subtraction? it seems to work, 
-                    #   don't have day2 part 2 avaialble on plane
-                    a1,a2,a3 = self.read(a1m), self.read(a2m), self.read_dst(a3m)
-                    self.mem[a3] = a1 - a2
                 case (1, a1m, a2m, a3m):
                     a1,a2,a3 = self.read(a1m), self.read(a2m), self.read_dst(a3m)
                     self.mem[a3] = a1 + a2
@@ -71,7 +66,7 @@ class Intcode:
     def read_input(self):
         i = self._input_i
         self._input_i += 1
-        return i
+        return self.input[i]
 
     def write_output(self, val):
         self.output.append(val)
