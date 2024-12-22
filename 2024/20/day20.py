@@ -5,7 +5,6 @@ INPUT = 'input.txt'
 with open(INPUT) as f:
     input = f.read()
 
-
 grid = [list(l.strip()) for l in input.strip().split('\n')]
 
 w = len(grid[0])
@@ -71,18 +70,7 @@ def to_path(graph, dist, start, end):
 
 path = to_path(g, dijkstra(g, (sx,sy)), (sx,sy), (ex,ey))
 
-for y in range(h):
-    for x in range(w):
-        if grid[y][x] in ['#', 'E', 'S']:
-            print('#', end='')
-        elif (x,y) in path:
-            print('O', end='')
-        else:
-            print('.', end='')
-    print()
-
 idx = {n:i for (i,n) in enumerate(path)}
-print(idx)
 
 ans = 0
 for cx,cy in path:
@@ -98,3 +86,16 @@ for cx,cy in path:
                     ans += 1
 
 print('Part 1:', ans)
+
+ans = 0
+for cx,cy in path:
+    c = idx[(cx,cy)]
+    for nx,ny in idx:
+        d = abs(nx - cx) + abs(ny - cy)
+        if d <= 20:
+            n = idx[(nx,ny)]
+            if n > c + d:
+                savings = n - c - d
+                if savings >= 100:
+                    ans += 1
+print('Part 2:', ans)
