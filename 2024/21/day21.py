@@ -1,58 +1,98 @@
-from collections import defaultdict
+import typing
+import functools
 
 INPUT = 'input.txt'
 with open(INPUT) as f:
-    input = f.read().strip().split('\n')
+    input = f.read()
 
+codes = input.strip().split('\n')
 
-def to_graph(keypad_string):
-    grid = keypad_string.strip().split('\n')
-    w = len(grid[0])
-    h = len(grid)
+KEYPAD = {
+    '7': (0, 0),
+    '8': (1, 0),
+    '9': (2, 0),
+    '4': (0, 1),
+    '5': (1, 1),
+    '6': (2, 1),
+    '1': (0, 2),
+    '2': (1, 2),
+    '3': (2, 2),
+    '0': (1, 3),
+    'A': (2, 3),
+}
+KEYPAD_INV = {v:k for k,v in KEYPAD.items()}
 
-    g = defaultdict(list)
-    for y in range(len(grid)):
-        for x in range(len(grid[y])):
-            k1 = grid[y][x]
-            if k1 != '.':
-                for dx,dy in [(0,-1),(0,1),(-1,0),(1,0)]:
-                    nx,ny = x+dx,y+dy
-                    if 0 <= nx < w and 0 <= ny < h and grid[ny][nx] != '.':
-                        k2 = grid[ny][nx]
-                        g[k1].append(k2)
-    return g
+DIRPAD = {
+    '^': (1, 0),
+    'A': (2, 0),
+    '<': (0, 1),
+    'v': (1, 1),
+    '>': (2, 1),
+}
+DIRPAD_INV = {v:k for k,v in DIRPAD.items()}
 
-num_keypad_graph = to_graph('''
-789
-456
-123
-.0A
-''')
+@functools.cache
+def paths(s, e, pad):
+    if s == e:
+        return [""]
 
-dir_keypad_graph = to_graph('''
-.^A
-<v>
-''')
+    PAD = KEYPAD if pad == 'key' else DIRPAD
+    PAD_INV = KEYPAD_INV if pad == 'key' else DIRPAD_INV
 
+    sx,sy = PAD[s]
+    ex,ey = PAD[e]
 
-def dijkstra(graph, start):
-    dist = defaultdict(lambda: float('inf'))
-    dist[start] = 0
-    uv = set(graph.keys())
+    dx = ex - sx
+    dy = ey - sy
 
-    while uv:
-        n = min(uv, key=lambda x: dist[x])
-        uv.remove(n)
-        d = dist[n]
+    if dy == 0:
+        k = ">" if dx > 0 else "<"
+        return [k * abs(dx)]
+    elif dx == 0:
+        k = "v" if dy > 0 else "^"
+        return [k * abs(dy)]
+    else:
+        ndx = dx // abs(dx)
+        ndy = dy // abs(dy)
 
-        for m in graph[n]:
-            if m in uv:
-                dist[m] = min(dist[m], d+1)
+        res = []
 
-    return dist
+        # horizontal
+        if (sx + ndx, sy) in PAD_INV:
+            n = PAD_INV[(sx + ndx, sy)]
+            k = ">" if dx > 0 else "<"
+            for p in paths(n, e, pad):
+                res.append(k + p)
+        # vertical
+        if (sx, sy + ndy) in PAD_INV:
+            n = PAD_INV[(sx, sy + ndy)]
+            k = "v" if dy > 0 else "^"
+            for p in paths(n, e, pad):
+                res.append(k + p)
 
-num_keypad = {k: dict(dijkstra(num_keypad_graph, k)) for k in num_keypad_graph}
-dir_keypad = {k: dict(dijkstra(dir_keypad_graph, k)) for k in dir_keypad_graph}
+        return res
 
-print(num_keypad)
-print(dir_keypad)
+def presses(w, pad):
+    ps = ['']
+    for c,n in zip('A' + w, w):
+        p = paths(c, n, pad)
+        nps = []
+        for p2 in ps:
+            for p3 in p:
+                nps.append(p2 + p3 + 'A')
+        ps = nps
+    return ps
+
+def shortest(c):
+    ans = None
+    for p in presses(c, 'key'):
+        for p2 in presses(p, 'dir'):
+            for p3 in presses(p2, 'dir'):
+                ans = min(len(p3), ans) if ans is not None else len(p3)
+    return typing.cast(int, ans)
+
+def complexity(c):
+    return shortest(c) * int(c[:-1])
+
+ans = sum(complexity(c) for c in codes)
+print('Part 1:', ans)
