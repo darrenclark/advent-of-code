@@ -1,3 +1,4 @@
+import numpy as np
 import re
 import itertools
 
@@ -18,7 +19,6 @@ with open(INPUT) as f:
         machines_pt2.append({'a': (int(ax), int(ay)), 'b': (int(bx), int(by)), 'p': (int(px) + 10000000000000, int(py) + 10000000000000)})
 
 def cost(m):
-    print(m)
     # px = ax * an + bx * bn
     # py = ay * an + by * bn
     # cost = an * 3 + bn
@@ -26,20 +26,14 @@ def cost(m):
     (bx, by) = m['b']
     (px, py) = m['p']
 
-    c = None
+    a = np.array([[ax, bx], [ay, by]])
+    b = np.array([px, py])
+    an,bn = np.linalg.solve(a, b)
 
-    for an in itertools.count(start=0):
-        rx = px - ax * an
-        ry = py - ay * an
-
-        if ry < 0 or rx < 0: break
-
-        bn = rx // bx
-        if rx % bx == 0 and by * bn == ry:
-            c2 = an * 3 + bn
-            c = c2 if c is None or c2 < c else c
-
-    return c
+    if abs(an - round(an)) < 0.001 and abs(bn - round(bn)) < 0.001:
+        return round(an) * 3 + round(bn)
+    else:
+        return None
 
 pt1 = sum(cost(m) or 0 for m in machines_pt1)
 print('Part 1:', pt1)
