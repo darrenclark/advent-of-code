@@ -72,27 +72,33 @@ def paths(s, e, pad):
 
         return res
 
-def presses(w, pad):
-    ps = ['']
-    for c,n in zip('A' + w, w):
-        p = paths(c, n, pad)
-        nps = []
-        for p2 in ps:
-            for p3 in p:
-                nps.append(p2 + p3 + 'A')
-        ps = nps
-    return ps
+@functools.cache
+def dp(c, t, pad, i):
+    if i == 0:
+        # +1 to press the A button
+        m = min(len(o) for o in paths(c, t, pad)) + 1
+        return m
 
-def shortest(c):
-    ans = None
-    for p in presses(c, 'key'):
-        for p2 in presses(p, 'dir'):
-            for p3 in presses(p2, 'dir'):
-                ans = min(len(p3), ans) if ans is not None else len(p3)
-    return typing.cast(int, ans)
+    res = None
+    for o in paths(c, t, pad):
+        m = 0
+        for c,t in zip('A' + o, o + 'A'):
+            m += dp(c, t, 'dir', i-1)
+        if res is None or m < res:
+            res = m
+    return typing.cast(int, res)
 
-def complexity(c):
-    return shortest(c) * int(c[:-1])
+def shortest(w, n):
+    res = 0
+    for c,t in zip('A' + w, w):
+        res += dp(c,t,'key',n)
+    return res
 
-ans = sum(complexity(c) for c in codes)
-print('Part 1:', ans)
+def complexity(c, n):
+    return shortest(c, n) * int(c[:-1])
+
+ans = sum(complexity(c, 2) for c in codes)
+print('Part 1:', ans)  # 213536
+
+ans = sum(complexity(c, 25) for c in codes)
+print('Part 2:', ans)  # 213536
