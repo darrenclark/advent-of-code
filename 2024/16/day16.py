@@ -1,4 +1,5 @@
 from collections import defaultdict
+import heapq
 import sys
 
 sys.setrecursionlimit(100000)
@@ -20,9 +21,6 @@ for y in range(h):
             sx,sy = x,y
         if grid[y][x] == 'E':
             ex,ey = x,y
-
-for row in grid:
-    print("".join(row))
 
 graph = defaultdict(list)
 
@@ -47,43 +45,61 @@ def add_edges(x,y):
 
     if grid[y][x-1] != '#':
         graph[(x,y, 'W')].append(((x-1,y, 'W'), 1))
+        graph[(x-1,y, 'W')].append(((x,y, 'W'), 1))
         add_edges(x-1,y)
     if grid[y][x+1] != '#':
         graph[(x,y, 'E')].append(((x+1,y, 'E'), 1))
+        graph[(x+1,y, 'E')].append(((x,y, 'E'), 1))
         add_edges(x+1,y)
     if grid[y-1][x] != '#':
         graph[(x,y, 'N')].append(((x,y-1, 'N'), 1))
+        graph[(x,y-1, 'N')].append(((x,y, 'N'), 1))
         add_edges(x,y-1)
     if grid[y+1][x] != '#':
         graph[(x,y, 'S')].append(((x,y+1, 'S'), 1))
+        graph[(x,y+1, 'S')].append(((x,y, 'S'), 1))
         add_edges(x,y+1)
 
 add_edges(sx,sy)
 
 
 def dijkstra(graph, start):
-    dist = defaultdict(lambda: float('inf'))
+    dist = {node: float('inf') for node in graph}
     dist[start] = 0
-    uv = set(graph.keys())
+    q = [(0, start)]
 
-    while uv:
-        n = min(uv, key=lambda x: dist[x])
-        uv.remove(n)
-        d = dist[n]
+    while q:
+        d,n = heapq.heappop(q)
 
-        for (m, w) in graph[n]:
-            if m in uv:
-                dist[m] = min(dist[m], d+w)
+        if d > dist[n]:
+            continue
+
+        for m, w in graph[n]:
+            md = d+w
+            if md < dist[m]:
+                dist[m] = md
+                heapq.heappush(q, (md, m))
 
     return dist
 
 
+
+start_node = (sx,sy,'E')
+# visibly inspecting graph in my input, the N node will always be the only one on the shortest path
+end_node = (ex,ey,'N')
 dist = dijkstra(graph, (sx,sy,'E'))
 
-ans = min(
-    dist[(ex,ey,'E')],
-    dist[(ex,ey,'W')],
-    dist[(ex,ey,'N')],
-    dist[(ex,ey,'S')],
-)
-print('Part 1: ', ans)
+print('Part 1: ', dist[end_node])
+
+s = set([(ex,ey)])
+seen = set()
+def dfs(n):
+    if n in seen:
+        return
+    seen.add(n)
+    for m,w in graph[n]:
+        if dist[n] - dist[m] == w:
+            s.add((m[0],m[1]))
+            dfs(m)
+dfs(end_node)
+print('Part 2: ', len(s))
